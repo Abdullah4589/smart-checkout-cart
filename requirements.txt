@@ -3,8 +3,9 @@ uvicorn[standard]==0.32.1
 python-multipart==0.0.17
 pydantic==2.10.3
 
-# Detection (Phase 2). Install CPU torch first from the PyTorch index:
-#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Detection (Phase 2). CPU-only torch wheels (much smaller, no CUDA) so the
+# deploy image stays well within PaaS build/image size limits.
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch
 torchvision
 ultralytics
