@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Checkout MVP</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🛒 Smart Checkout <span class="tag">MVP</span></h1>
+    <div class="status">
+      <span id="status-dot" class="dot dot-idle"></span>
+      <span id="status-text">Starting…</span>
+    </div>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <main class="layout">
+    <!-- Left: camera + live detection -->
+    <section class="panel camera-panel">
+      <div class="panel-head">
+        <h2>Camera</h2>
+        <div class="controls">
+          <label class="debug-toggle">
+            <input type="checkbox" id="chk-debug" />
+            Debug view
+          </label>
+          <button id="btn-switch-camera" class="btn btn-ghost" hidden>⟲ Switch Camera</button>
+          <button id="btn-camera" class="btn">Start Camera</button>
+        </div>
+      </div>
+
+      <div class="video-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <div id="camera-msg" class="camera-msg">Camera off</div>
+      </div>
+
+      <div class="detected-bar">
+        <span class="label">Detected:</span>
+        <span id="detected-item" class="detected-item">—</span>
+      </div>
+    </section>
+
+    <!-- Right: running cart / bill -->
+    <section class="panel cart-panel">
+      <div class="panel-head">
+        <h2>Cart</h2>
+        <button id="btn-reset" class="btn btn-ghost">New Customer</button>
+      </div>
+
+      <div class="cart-list-wrap">
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th class="col-name">Item</th>
+              <th class="col-qty">Qty</th>
+              <th class="col-price">Unit</th>
+              <th class="col-total">Line</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="cart-body">
+            <tr class="empty-row"><td colspan="5">Cart is empty</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cart-footer">
+        <div class="cart-footer-totals">
+          <span id="item-count" class="item-count">0 items</span>
+          <span class="grand-label">Grand Total</span>
+        </div>
+        <span id="grand-total" class="grand-total">$0.00</span>
+      </div>
+      <button id="btn-checkout" class="btn btn-checkout" disabled>Complete Sale</button>
+    </section>
+  </main>
+
+  <div id="receipt-overlay" class="receipt-overlay hidden">
+    <div class="receipt">
+      <h2>Sale Complete</h2>
+      <div id="receipt-body" class="receipt-body"></div>
+      <div class="receipt-total">
+        <span>Total</span>
+        <span id="receipt-total">$0.00</span>
+      </div>
+      <button id="btn-receipt-close" class="btn">New Customer</button>
+    </div>
+  </div>
+
+  <footer class="catalog-strip">
+    <span class="catalog-title">Catalog:</span>
+    <span id="catalog-list" class="catalog-list">loading…</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
