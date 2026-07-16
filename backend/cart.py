@@ -35,6 +35,7 @@ import database
 
 _sessions: dict[str, dict] = {}
 _lock = threading.Lock()
+_invoice_seq = 1000  # in-memory; resets on restart (fine for a single-lane MVP)
 
 
 def _new_session() -> dict:
@@ -137,13 +138,21 @@ def _add_units(items: dict[str, dict], product: dict, count: int) -> None:
 
 def _summary(items: dict[str, dict]) -> dict:
     lines = []
-    grand = 0.0
+    subtotal = 0.0
     for it in items.values():
         line_total = round(it["unit_price"] * it["qty"], 2)
-        grand += line_total
+        subtotal += line_total
         lines.append({**it, "line_total": line_total})
     lines.sort(key=lambda x: x["name"])
-    return {"items": lines, "grand_total": round(grand, 2)}
+    subtotal = round(subtotal, 2)
+    gst = round(subtotal * config.GST_RATE, 2)
+    return {
+        "items": lines,
+        "subtotal": subtotal,
+        "gst_rate": config.GST_RATE,
+        "gst_amount": gst,
+        "grand_total": round(subtotal + gst, 2),
+    }
 
 
 def get_cart(session_id: str) -> dict:
@@ -157,12 +166,16 @@ def reset(session_id: str) -> dict:
         return _summary(_sessions[session_id]["items"])
 
 
-def checkout(session_id: str) -> dict:
+def checkout(session_id: str, payment_method: str = "Cash") -> dict:
     """Finalize the sale: snapshot the cart as a receipt, then clear the lane
     for the next customer (same as reset, but returns what was sold)."""
+    global _invoice_seq
     with _lock:
         receipt = _summary(_get(session_id)["items"])
         receipt["completed_at"] = time.time()
+        receipt["payment_method"] = payment_method
+        receipt["invoice_no"] = f"INV-{_invoice_seq}"
+        _invoice_seq += 1
         _sessions[session_id] = _new_session()
         return receipt
 

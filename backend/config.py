@@ -17,3 +17,14 @@ COUNT_CONFIRM_POLLS: int = int(os.getenv("COUNT_CONFIRM_POLLS", "2"))
 
 # YOLO model weights (Phase 2). 'yolov8n.pt' is the smallest (~6 MB).
 MODEL_WEIGHTS: str = os.getenv("MODEL_WEIGHTS", "yolov8n.pt")
+
+# --- Store identity (white-label per client; demo defaults below) ---
+STORE_NAME: str = os.getenv("STORE_NAME", "Al-Noor SuperMart")
+STORE_BRANCH: str = os.getenv("STORE_BRANCH", "Gulberg III, Lahore")
+STORE_NTN: str = os.getenv("STORE_NTN", "1234567-8")
+CURRENCY_SYMBOL: str = os.getenv("CURRENCY_SYMBOL", "Rs. ")
+
+# Sales tax (Pakistan standard GST on retail goods is 17%). Set to 0 to disable.
+GST_RATE: float = float(os.getenv("GST_RATE", "0.17"))
+
+PAYMENT_METHODS: list[str] = ["Cash", "Card", "JazzCash", "EasyPaisa"]

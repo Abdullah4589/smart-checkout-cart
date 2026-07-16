@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Checkout MVP</title>
+  <title>SmartCart — AI Checkout MVP</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <header class="topbar">
-    <h1>🛒 Smart Checkout <span class="tag">MVP</span></h1>
+    <div class="brand">
+      <h1>🛒 <span id="store-name">SmartCart</span> <span class="tag">AI Checkout</span></h1>
+      <span id="store-branch" class="store-branch"></span>
+    </div>
     <div class="status">
       <span id="status-dot" class="dot dot-idle"></span>
       <span id="status-text">Starting…</span>
@@ -68,25 +71,42 @@
         </table>
       </div>
 
-      <div class="cart-footer">
-        <div class="cart-footer-totals">
-          <span id="item-count" class="item-count">0 items</span>
-          <span class="grand-label">Grand Total</span>
-        </div>
-        <span id="grand-total" class="grand-total">$0.00</span>
+      <div class="cart-totals">
+        <div class="totals-row"><span>Subtotal</span><span id="subtotal">Rs. 0</span></div>
+        <div class="totals-row"><span id="gst-label">GST (17%)</span><span id="gst-amount">Rs. 0</span></div>
+        <div class="totals-row totals-grand"><span>Grand Total</span><span id="grand-total">Rs. 0</span></div>
+        <span id="item-count" class="item-count">0 items</span>
       </div>
       <button id="btn-checkout" class="btn btn-checkout" disabled>Complete Sale</button>
     </section>
   </main>
 
+  <div id="payment-overlay" class="receipt-overlay hidden">
+    <div class="receipt">
+      <h2>Select Payment Method</h2>
+      <div id="payment-methods" class="payment-methods"></div>
+      <button id="btn-payment-cancel" class="btn btn-ghost" style="width:100%;margin-top:10px;">Cancel</button>
+    </div>
+  </div>
+
   <div id="receipt-overlay" class="receipt-overlay hidden">
     <div class="receipt">
-      <h2>Sale Complete</h2>
+      <div class="receipt-store-head">
+        <h2 id="receipt-store-name">Store</h2>
+        <div id="receipt-store-branch" class="rmeta"></div>
+        <div id="receipt-meta" class="rmeta"></div>
+      </div>
       <div id="receipt-body" class="receipt-body"></div>
+      <div class="receipt-totals">
+        <div class="receipt-row"><span>Subtotal</span><span id="receipt-subtotal">Rs. 0</span></div>
+        <div class="receipt-row"><span id="receipt-gst-label">GST</span><span id="receipt-gst">Rs. 0</span></div>
+      </div>
       <div class="receipt-total">
         <span>Total</span>
-        <span id="receipt-total">$0.00</span>
+        <span id="receipt-total">Rs. 0</span>
       </div>
+      <div id="receipt-payment" class="rmeta receipt-payment"></div>
+      <div class="receipt-thanks">Shukriya! Thank you for shopping with us.</div>
       <button id="btn-receipt-close" class="btn">New Customer</button>
     </div>
   </div>

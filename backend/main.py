@@ -39,6 +39,18 @@ def health() -> dict:
     }
 
 
+@app.get("/api/store")
+def store_info() -> dict:
+    return {
+        "name": config.STORE_NAME,
+        "branch": config.STORE_BRANCH,
+        "ntn": config.STORE_NTN,
+        "currency_symbol": config.CURRENCY_SYMBOL,
+        "gst_rate": config.GST_RATE,
+        "payment_methods": config.PAYMENT_METHODS,
+    }
+
+
 @app.get("/api/products")
 def get_products() -> dict:
     products = database.list_products()
@@ -86,9 +98,11 @@ def reset_cart(session: str = "default") -> dict:
 
 
 @app.post("/api/cart/checkout")
-def checkout_cart(session: str = "default") -> dict:
+def checkout_cart(session: str = "default", payment_method: str = "Cash") -> dict:
     """Finalize the sale and return a receipt; clears the lane for the next customer."""
-    return cart.checkout(session)
+    if payment_method not in config.PAYMENT_METHODS:
+        payment_method = "Cash"
+    return cart.checkout(session, payment_method)
 
 
 @app.post("/api/cart/set-qty")

@@ -23,10 +23,26 @@ const els = {
   receiptBody: document.getElementById("receipt-body"),
   receiptTotal: document.getElementById("receipt-total"),
   btnReceiptClose: document.getElementById("btn-receipt-close"),
+  storeName: document.getElementById("store-name"),
+  storeBranch: document.getElementById("store-branch"),
+  subtotal: document.getElementById("subtotal"),
+  gstLabel: document.getElementById("gst-label"),
+  gstAmount: document.getElementById("gst-amount"),
+  paymentOverlay: document.getElementById("payment-overlay"),
+  paymentMethods: document.getElementById("payment-methods"),
+  btnPaymentCancel: document.getElementById("btn-payment-cancel"),
+  receiptStoreName: document.getElementById("receipt-store-name"),
+  receiptStoreBranch: document.getElementById("receipt-store-branch"),
+  receiptMeta: document.getElementById("receipt-meta"),
+  receiptSubtotal: document.getElementById("receipt-subtotal"),
+  receiptGstLabel: document.getElementById("receipt-gst-label"),
+  receiptGst: document.getElementById("receipt-gst"),
+  receiptPayment: document.getElementById("receipt-payment"),
 };
 
 let debugView = false;
 let lastCartSummary = null;
+let storeInfo = { name: "SmartCart", branch: "", currency_symbol: "Rs. ", gst_rate: 0.17, payment_methods: ["Cash"] };
 
 let stream = null;
 // Prefer the back/environment camera first (better for scanning items held up
@@ -275,7 +291,8 @@ els.chkDebug.addEventListener("change", () => {
 
 // ---------- cart rendering ----------
 function money(n) {
-  return "$" + n.toFixed(2);
+  const amount = Math.round(n || 0).toLocaleString("en-PK");
+  return storeInfo.currency_symbol + amount;
 }
 
 function renderCart(summary) {
@@ -285,11 +302,15 @@ function renderCart(summary) {
   els.itemCount.textContent = `${totalQty} item${totalQty === 1 ? "" : "s"}`;
   els.btnCheckout.disabled = totalQty === 0;
 
+  els.subtotal.textContent = money((summary && summary.subtotal) || 0);
+  els.gstAmount.textContent = money((summary && summary.gst_amount) || 0);
+  els.gstLabel.textContent = `GST (${Math.round((storeInfo.gst_rate || 0) * 100)}%)`;
+
   els.cartBody.innerHTML = "";
   if (items.length === 0) {
     els.cartBody.innerHTML =
       '<tr class="empty-row"><td colspan="5">Cart is empty</td></tr>';
-    els.grandTotal.textContent = "$0.00";
+    els.grandTotal.textContent = money(0);
     return;
   }
   for (const item of items) {
@@ -360,24 +381,56 @@ els.btnReset.addEventListener("click", async () => {
 });
 
 // ---------- checkout / receipt ----------
-els.btnCheckout.addEventListener("click", async () => {
+els.btnCheckout.addEventListener("click", () => {
   if (!lastCartSummary || !lastCartSummary.items.length) return;
+  openPaymentPicker();
+});
+
+function openPaymentPicker() {
+  els.paymentMethods.innerHTML = (storeInfo.payment_methods || ["Cash"])
+    .map((m) => `<button class="btn payment-btn" data-method="${m}">${paymentIcon(m)} ${m}</button>`)
+    .join("");
+  els.paymentOverlay.classList.remove("hidden");
+}
+
+function paymentIcon(method) {
+  return { Cash: "💵", Card: "💳", JazzCash: "📱", EasyPaisa: "📲" }[method] || "💰";
+}
+
+els.paymentMethods.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-method]");
+  if (!btn) return;
+  els.paymentOverlay.classList.add("hidden");
+  await completeCheckout(btn.dataset.method);
+});
+
+els.btnPaymentCancel.addEventListener("click", () => {
+  els.paymentOverlay.classList.add("hidden");
+});
+
+async function completeCheckout(paymentMethod) {
   try {
     const res = await fetch(
-      `/api/cart/checkout?session=${encodeURIComponent(sessionId)}`,
+      `/api/cart/checkout?session=${encodeURIComponent(sessionId)}&payment_method=${encodeURIComponent(paymentMethod)}`,
       { method: "POST" }
     );
     const receipt = await res.json();
     showReceipt(receipt);
-    renderCart({ items: [], grand_total: 0 });
+    renderCart({ items: [], subtotal: 0, gst_amount: 0, grand_total: 0 });
   } catch (err) {
     console.error("Checkout failed:", err);
     showBanner("Checkout failed — could not reach the server. Try again.");
   }
-});
+}
 
 function showReceipt(receipt) {
   const items = receipt.items || [];
+  els.receiptStoreName.textContent = storeInfo.name;
+  els.receiptStoreBranch.textContent = storeInfo.branch || "";
+  const dt = receipt.completed_at
+    ? new Date(receipt.completed_at * 1000).toLocaleString("en-PK")
+    : new Date().toLocaleString("en-PK");
+  els.receiptMeta.textContent = `${receipt.invoice_no || ""} · ${dt}`;
   els.receiptBody.innerHTML = items
     .map(
       (it) => `
@@ -387,7 +440,11 @@ function showReceipt(receipt) {
       </div>`
     )
     .join("");
+  els.receiptSubtotal.textContent = money(receipt.subtotal || 0);
+  els.receiptGstLabel.textContent = `GST (${Math.round((receipt.gst_rate ?? storeInfo.gst_rate ?? 0) * 100)}%)`;
+  els.receiptGst.textContent = money(receipt.gst_amount || 0);
   els.receiptTotal.textContent = money(receipt.grand_total || 0);
+  els.receiptPayment.textContent = `Paid via ${receipt.payment_method || "Cash"}`;
   els.receiptOverlay.classList.remove("hidden");
 }
 
@@ -424,6 +481,20 @@ async function loadCatalog() {
   }
 }
 
+// ---------- store info ----------
+async function loadStoreInfo() {
+  try {
+    const res = await fetch("/api/store");
+    storeInfo = await res.json();
+    els.storeName.textContent = storeInfo.name;
+    els.storeBranch.textContent = storeInfo.branch || "";
+  } catch (err) {
+    console.error("Store info load failed:", err);
+  }
+}
+
 // ---------- init ----------
-loadCart();
+loadStoreInfo().then(() => {
+  loadCart();
+});
 loadCatalog();

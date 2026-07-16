@@ -5,8 +5,8 @@
   --border: #2c3350;
   --text: #e7e9f2;
   --muted: #9aa1bd;
-  --accent: #5b8cff;
-  --accent-2: #33c58a;
+  --accent: #1e9e5a;
+  --accent-2: #2fbf71;
   --danger: #ff6b6b;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
@@ -31,7 +31,9 @@ body {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
+.brand { display: flex; flex-direction: column; gap: 2px; }
 .topbar h1 { font-size: 1.15rem; margin: 0; font-weight: 600; }
+.store-branch { font-size: 0.75rem; color: var(--muted); }
 .tag {
   font-size: 0.65rem;
   background: var(--accent);
@@ -172,16 +174,27 @@ body {
   font-size: 1rem;
 }
 
-.cart-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
+.cart-totals {
+  padding: 12px 16px;
   border-top: 1px solid var(--border);
-  font-size: 1.05rem;
-  font-weight: 600;
 }
-.grand-total { color: var(--accent-2); font-size: 1.4rem; }
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 3px 0;
+}
+.totals-row.totals-grand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px dashed var(--border);
+}
+.totals-row.totals-grand span:last-child { color: var(--accent-2); }
+.item-count { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
 
 /* Error/status banner */
 .banner {
@@ -239,6 +252,15 @@ body {
   max-width: 90vw;
 }
 .receipt h2 { margin: 0 0 12px; font-size: 1.1rem; }
+.receipt-store-head { text-align: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--border); }
+.receipt-store-head h2 { margin-bottom: 4px; }
+.receipt-store-head .rmeta { font-size: 0.78rem; }
+.receipt-totals { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.receipt-payment { text-align: center; margin-top: 8px; font-weight: 600; color: var(--text); }
+.receipt-thanks { text-align: center; font-size: 0.8rem; color: var(--muted); margin: 10px 0 14px; }
+
+.payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.payment-btn { padding: 14px 8px; font-size: 0.9rem; font-weight: 600; }
 .receipt-body {
   display: flex;
   flex-direction: column;
