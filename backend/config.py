@@ -20,7 +20,7 @@ MODEL_WEIGHTS: str = os.getenv("MODEL_WEIGHTS", "yolov8n.pt")
 
 # --- Store identity (white-label per client; demo defaults below) ---
 STORE_NAME: str = os.getenv("STORE_NAME", "Al-Noor SuperMart")
-STORE_BRANCH: str = os.getenv("STORE_BRANCH", "Gulberg III, Lahore")
+STORE_BRANCH: str = os.getenv("STORE_BRANCH", "Clifton Block 5, Karachi")
 STORE_NTN: str = os.getenv("STORE_NTN", "1234567-8")
 CURRENCY_SYMBOL: str = os.getenv("CURRENCY_SYMBOL", "Rs. ")
 

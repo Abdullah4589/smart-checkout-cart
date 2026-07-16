@@ -94,7 +94,7 @@ when prompted).
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `STORE_NAME` | `Al-Noor SuperMart` | Store name shown in header + receipts (white-label per client) |
-| `STORE_BRANCH` | `Gulberg III, Lahore` | Branch/address line on receipts |
+| `STORE_BRANCH` | `Clifton Block 5, Karachi` | Branch/address line on receipts |
 | `STORE_NTN` | `1234567-8` | Tax registration number for receipts |
 | `CURRENCY_SYMBOL` | `Rs. ` | Currency prefix used everywhere |
 | `GST_RATE` | `0.17` | Sales tax rate applied to subtotal (0 disables it) |
