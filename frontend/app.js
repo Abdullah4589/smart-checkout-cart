@@ -18,6 +18,8 @@ const els = {
   statusText: document.getElementById("status-text"),
   banner: document.getElementById("banner"),
   chkDebug: document.getElementById("chk-debug"),
+  debugSentWrap: document.getElementById("debug-sent-wrap"),
+  debugSentFrame: document.getElementById("debug-sent-frame"),
   btnCheckout: document.getElementById("btn-checkout"),
   receiptOverlay: document.getElementById("receipt-overlay"),
   receiptBody: document.getElementById("receipt-body"),
@@ -210,6 +212,14 @@ async function captureAndDetect() {
     );
     if (!blob) return;
 
+    if (debugView) {
+      const prevUrl = els.debugSentFrame.dataset.blobUrl;
+      const url = URL.createObjectURL(blob);
+      els.debugSentFrame.src = url;
+      els.debugSentFrame.dataset.blobUrl = url;
+      if (prevUrl) URL.revokeObjectURL(prevUrl);
+    }
+
     const form = new FormData();
     form.append("frame", blob, "frame.jpg");
     form.append("session", sessionId);
@@ -306,6 +316,7 @@ els.btnCamera.addEventListener("click", () => {
 
 els.chkDebug.addEventListener("change", () => {
   debugView = els.chkDebug.checked;
+  els.debugSentWrap.classList.toggle("hidden", !debugView);
 });
 
 // ---------- cart rendering ----------
