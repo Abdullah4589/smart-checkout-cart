@@ -4,7 +4,10 @@ so they're easy to tune during testing (e.g. the detection threshold)."""
 import os
 
 # Minimum detection confidence to accept a detection. Tune during testing.
-CONFIDENCE_THRESHOLD: float = float(os.getenv("CONFIDENCE_THRESHOLD", "0.50"))
+# Lowered from 0.50: the lightweight yolov8n model under-detects secondary
+# items in a multi-product frame at the stricter threshold (COUNT_CONFIRM_POLLS
+# already guards against single-frame false positives, so this is safe to relax).
+CONFIDENCE_THRESHOLD: float = float(os.getenv("CONFIDENCE_THRESHOLD", "0.35"))
 
 # How long (seconds) the same product must be absent before a re-detection
 # counts as a new physical item. Used by the cart debounce logic (Phase 3).

@@ -184,6 +184,13 @@ function clearOverlay() {
   ctx.clearRect(0, 0, els.overlay.width, els.overlay.height);
 }
 
+// Cap the long edge of the frame we upload — the model resizes internally
+// anyway, so sending full 1280x720 just wastes upload time + CPU on a
+// resource-constrained server. Smaller frame = faster round trip = the
+// COUNT_CONFIRM_POLLS debounce (cart.py) resolves in real seconds instead of
+// many, which is what actually made multi-item scans feel slow/missed.
+const MAX_SEND_DIM = 640;
+
 async function captureAndDetect() {
   if (detectInFlight || !stream) return;
   const vw = els.video.videoWidth;
@@ -192,9 +199,12 @@ async function captureAndDetect() {
 
   detectInFlight = true;
   try {
-    captureCanvas.width = vw;
-    captureCanvas.height = vh;
-    captureCanvas.getContext("2d").drawImage(els.video, 0, 0, vw, vh);
+    const scale = Math.min(1, MAX_SEND_DIM / Math.max(vw, vh));
+    const sendW = Math.round(vw * scale);
+    const sendH = Math.round(vh * scale);
+    captureCanvas.width = sendW;
+    captureCanvas.height = sendH;
+    captureCanvas.getContext("2d").drawImage(els.video, 0, 0, sendW, sendH);
     const blob = await new Promise((res) =>
       captureCanvas.toBlob(res, "image/jpeg", 0.7)
     );
@@ -222,8 +232,17 @@ async function captureAndDetect() {
       setStatus("Detecting", "live");
       hideBanner();
     }
-    drawDetections(data.detections || [], vw, vh);
-    updateDetectedBar(data.detections || []);
+    // Detection boxes are in the (possibly downscaled) sent-frame's pixel
+    // space — scale back up to the video's native size for the overlay.
+    const detections = data.detections || [];
+    const backToVideo = 1 / scale;
+    if (backToVideo !== 1) {
+      for (const d of detections) {
+        d.box = d.box.map((v) => Math.round(v * backToVideo));
+      }
+    }
+    drawDetections(detections, vw, vh);
+    updateDetectedBar(detections);
     if (data.cart) renderCart(data.cart);
   } catch (err) {
     console.error("Detect error:", err);
