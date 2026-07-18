@@ -94,22 +94,25 @@ def process_detections(session_id: str, detections: list[dict]) -> dict:
             entry["last_seen"] = now
 
             if n > entry["credited"]:
-                # A higher count must persist for `confirm` polls before crediting.
-                if n == entry["cand"]:
-                    entry["cand_hits"] += 1
-                else:
-                    entry["cand"], entry["cand_hits"] = n, 1
+                # Sustained presence above the credited count must persist for
+                # `confirm` polls before crediting — the exact per-poll count can
+                # flicker (occlusion, a shaky box, momentary NMS merges of two
+                # same-class items) so we track the max seen during the streak
+                # rather than requiring an identical count every poll.
+                entry["cand_hits"] += 1
+                entry["cand"] = max(entry["cand"], n)
 
                 if entry["cand_hits"] >= confirm:
                     product = database.get_product_by_label(label)
                     if product is not None:  # unknown objects are shown, not billed
-                        add = n - entry["credited"]
+                        add = entry["cand"] - entry["credited"]
                         _add_units(items, product, add)
                         added_per_label[label] = add
-                    entry["credited"] = n
+                    entry["credited"] = entry["cand"]
                     entry["cand"], entry["cand_hits"] = 0, 0
             else:
-                # stable or fewer instances (flicker) — hold count, clear candidate
+                # back down to (or below) the credited count — flicker settled,
+                # clear the streak
                 entry["cand"], entry["cand_hits"] = 0, 0
 
             presence[label] = entry
