@@ -10,8 +10,3 @@ torch
 torchvision
 ultralytics
 opencv-python-headless
-
-# YOLO-World's open-vocabulary text encoder (CLIP). Ultralytics only
-# auto-installs this on first use if missing, which needs git + network
-# access at runtime — pin it here so it's baked into the build instead.
-git+https://github.com/ultralytics/CLIP.git

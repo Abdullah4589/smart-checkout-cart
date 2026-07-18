@@ -78,24 +78,6 @@ def get_product_by_label(label: str) -> dict | None:
         conn.close()
 
 
-def list_detection_terms() -> list[str]:
-    """Distinct detection_label terms across the catalog, in catalog order.
-
-    Feeds the open-vocabulary detector's class list (see detector.py) — the
-    detector's vocabulary is just "whatever terms the catalog currently has",
-    so adding a product row makes it detectable with no retraining."""
-    conn = get_connection()
-    try:
-        rows = conn.execute(
-            "SELECT DISTINCT detection_label FROM products "
-            "WHERE detection_label IS NOT NULL AND detection_label != '' "
-            "ORDER BY id"
-        ).fetchall()
-        return [r[0] for r in rows]
-    finally:
-        conn.close()
-
-
 def get_product_by_sku(sku: str) -> dict | None:
     conn = get_connection()
     try:
