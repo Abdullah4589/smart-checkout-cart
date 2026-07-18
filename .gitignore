@@ -5,3 +5,9 @@ __pycache__/
 venv/
 .venv/
 checkout.db
+
+# Model weights are downloaded at Docker build time (see Dockerfile) —
+# don't commit multi-hundred-MB binaries to git.
+*.pt
+bus.jpg
+zidane.jpg

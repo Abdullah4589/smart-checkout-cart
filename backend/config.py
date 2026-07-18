@@ -15,8 +15,10 @@ REDETECT_COOLDOWN_SECONDS: float = float(os.getenv("REDETECT_COOLDOWN_SECONDS", 
 # single-frame detection flicker / false spikes. 1 = credit immediately.
 COUNT_CONFIRM_POLLS: int = int(os.getenv("COUNT_CONFIRM_POLLS", "2"))
 
-# YOLO model weights (Phase 2). 'yolov8n.pt' is the smallest (~6 MB).
-MODEL_WEIGHTS: str = os.getenv("MODEL_WEIGHTS", "yolov8n.pt")
+# YOLO-World open-vocabulary model weights. Detects whatever terms the
+# catalog supplies at runtime (see detector.py) instead of a fixed class
+# list, so the product catalog isn't limited to COCO's 80 classes.
+MODEL_WEIGHTS: str = os.getenv("MODEL_WEIGHTS", "yolov8s-worldv2.pt")
 
 # --- Store identity (white-label per client; demo defaults below) ---
 STORE_NAME: str = os.getenv("STORE_NAME", "Al-Noor SuperMart")

@@ -1,11 +1,18 @@
-"""YOLOv8 object detection wrapper.
+"""YOLO-World open-vocabulary object detection wrapper.
 
-Loads a pretrained YOLOv8 model lazily (on first use) so the server can start
-even before weights are downloaded, and so import stays cheap. Detections are
-returned as plain dicts with pixel-space boxes relative to the received frame.
+Loads a pretrained YOLO-World model lazily (on first use) so the server can
+start even before weights are downloaded, and so import stays cheap.
 
-Fine-tuning on the real product catalog is future work — for the demo we rely
-on the pretrained COCO classes, mapped to catalog SKUs in Phase 3.
+Unlike a plain YOLOv8/COCO model — which can only ever emit its 80 fixed
+training classes — YOLO-World detects an arbitrary text vocabulary supplied
+at inference time via `set_classes()`. That vocabulary is simply the current
+catalog's `detection_label` terms (see database.list_detection_terms()), so
+the product list is no longer hardcoded to COCO classes: adding a new
+product row (name + price + a short descriptive term) makes it detectable
+immediately, with no retraining and no code change.
+
+Detections are returned as plain dicts with pixel-space boxes relative to
+the received frame.
 """
 
 from __future__ import annotations
@@ -14,29 +21,43 @@ import io
 import threading
 
 import config
+import database
 
 _model = None
 _model_lock = threading.Lock()
 _load_error: str | None = None
+_loaded_classes: list[str] = []
 
 
 def load_model():
-    """Load the YOLO model once (thread-safe). Returns the model or None."""
+    """Load the YOLO-World model once (thread-safe), then sync its
+    vocabulary to the current catalog. Returns the model or None."""
     global _model, _load_error
-    if _model is not None:
-        return _model
-    with _model_lock:
-        if _model is not None:
-            return _model
-        try:
-            from ultralytics import YOLO  # imported lazily (heavy)
+    if _model is None:
+        with _model_lock:
+            if _model is None:
+                try:
+                    from ultralytics import YOLOWorld  # imported lazily (heavy)
 
-            _model = YOLO(config.MODEL_WEIGHTS)
-            _load_error = None
-        except Exception as exc:  # noqa: BLE001 - surface any load failure
-            _load_error = str(exc)
-            _model = None
+                    _model = YOLOWorld(config.MODEL_WEIGHTS)
+                    _load_error = None
+                except Exception as exc:  # noqa: BLE001 - surface any load failure
+                    _load_error = str(exc)
+                    _model = None
+    if _model is not None:
+        _refresh_classes()
     return _model
+
+
+def _refresh_classes() -> None:
+    """Point the model's open vocabulary at the current catalog's detection
+    terms. Cheap to call on every request — skipped unless the catalog's
+    terms actually changed since the last call."""
+    global _loaded_classes
+    terms = database.list_detection_terms()
+    if terms and terms != _loaded_classes:
+        _model.set_classes(terms)
+        _loaded_classes = terms
 
 
 def model_status() -> dict:
@@ -44,6 +65,7 @@ def model_status() -> dict:
         "loaded": _model is not None,
         "weights": config.MODEL_WEIGHTS,
         "error": _load_error,
+        "vocabulary": _loaded_classes,
     }
 
 
